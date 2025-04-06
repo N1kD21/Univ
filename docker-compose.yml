@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  nats:
+    image: nats:latest
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    command: -js
+    networks:
+      - app-network
+    volumes:
+      - nats_data:/data  # Persist NATS data
+
+  gateway:
+    build:
+      context: ./gateway
+    environment:
+      - NATS_SERVER=${NATS_SERVER}
+    ports:
+      - "3000"
+    depends_on:
+      - nats
+    networks:
+      - app-network
+    deploy:
+      replicas: 3
+
+  publisher:
+    image: andriiuni/events:latest
+    platform: linux/arm64
+    environment:
+      - EVENT_ENDPOINT=${EVENT_ENDPOINT}
+    depends_on:
+      - gateway
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - gateway
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  nats_data:
