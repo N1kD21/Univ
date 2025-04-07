@@ -34,7 +34,6 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
     const promises = events.map(async (event) => {
       const subject = `${event.source}.${event.eventType}`;
       const data = this.sc.encode(JSON.stringify(event));
-
       if (!event.source || !event.eventType) {
         console.error('Event:', event);
         console.error('Subject:', subject);
@@ -54,7 +53,7 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async createStream(streamName: string) {
-    const sub: string[] = [
+    const tiktokSubs: string[] = [
       'tiktok.video.view',
       'tiktok.like',
       'tiktok.share',
@@ -62,6 +61,9 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
       'tiktok.profile.visit',
       'tiktok.purchase',
       'tiktok.follow',
+    ];
+
+    const facebookSubs: string[] = [
       'facebook.ad.view',
       'facebook.page.like',
       'facebook.comment',
@@ -70,18 +72,21 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
       'facebook.form.submission',
       'facebook.checkout.complete',
     ];
-    try {
-      await this.jsm.streams.add({
-        name: streamName,
-        subjects: sub,
-        max_age: 60 * 60 * 1e9,
-        max_bytes: 1000000000,
-        max_msgs: 10000,
-      });
 
-      console.log(`Stream ${streamName} created.`);
-    } catch (error) {
-      console.error('Error creating stream:', error);
-    }
+    await this.jsm.streams.add({
+      name: 'tiktok',
+      subjects: tiktokSubs,
+      max_age: 60 * 60 * 1e9,
+      max_bytes: 1000000000,
+      max_msgs: 10000,
+    });
+    await this.jsm.streams.add({
+      name: 'facebook',
+      subjects: facebookSubs,
+      max_age: 60 * 60 * 1e9,
+      max_bytes: 1000000000,
+      max_msgs: 10000,
+    });
+    console.log(`Streams for ${streamName} created.`);
   }
 }

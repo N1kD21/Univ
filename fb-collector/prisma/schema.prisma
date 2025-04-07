@@ -1,8 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// fb-collector/prisma/schema.prisma
 
 generator client {
   provider = "prisma-client-js"
@@ -11,4 +7,54 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  name      String
+  age       Int
+  gender    Gender
+  country   String
+  city      String
+  source    Platform
+  events    Event[]
+}
+
+model Event {
+  id        String       @id @default(cuid())
+  eventId   String       @unique
+  timestamp DateTime
+  funnelStage FunnelStage
+  eventType EventType
+  userId    String
+  user      User         @relation(fields: [userId], references: [id])
+  platform  Platform
+  data      Json  
+}
+
+enum Gender {
+  male
+  female
+  non_binary
+}
+
+enum FunnelStage {
+  top
+  bottom
+}
+
+enum EventType {
+  ad_view
+  page_like
+  comment
+  video_view
+  ad_click
+  form_submission
+  checkout_complete
+}
+
+enum Platform {
+  facebook
+  tiktok
 }
