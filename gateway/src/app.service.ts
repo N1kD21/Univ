@@ -14,6 +14,25 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
   private jsm: JetStreamManager;
   private js: JetStreamClient;
   private sc = StringCodec();
+  private readonly tiktokSubs: string[] = [
+    'tiktok.video.view',
+    'tiktok.like',
+    'tiktok.share',
+    'tiktok.comment',
+    'tiktok.profile.visit',
+    'tiktok.purchase',
+    'tiktok.follow',
+  ];
+
+  private readonly facebookSubs: string[] = [
+    'facebook.ad.view',
+    'facebook.page.like',
+    'facebook.comment',
+    'facebook.video.view',
+    'facebook.ad.click',
+    'facebook.form.submission',
+    'facebook.checkout.complete',
+  ];
 
   async onModuleInit() {
     this.nc = await connect({
@@ -53,36 +72,16 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async createStream(streamName: string) {
-    const tiktokSubs: string[] = [
-      'tiktok.video.view',
-      'tiktok.like',
-      'tiktok.share',
-      'tiktok.comment',
-      'tiktok.profile.visit',
-      'tiktok.purchase',
-      'tiktok.follow',
-    ];
-
-    const facebookSubs: string[] = [
-      'facebook.ad.view',
-      'facebook.page.like',
-      'facebook.comment',
-      'facebook.video.view',
-      'facebook.ad.click',
-      'facebook.form.submission',
-      'facebook.checkout.complete',
-    ];
-
     await this.jsm.streams.add({
       name: 'tiktok',
-      subjects: tiktokSubs,
+      subjects: this.tiktokSubs,
       max_age: 60 * 60 * 1e9,
       max_bytes: 1000000000,
       max_msgs: 10000,
     });
     await this.jsm.streams.add({
       name: 'facebook',
-      subjects: facebookSubs,
+      subjects: this.facebookSubs,
       max_age: 60 * 60 * 1e9,
       max_bytes: 1000000000,
       max_msgs: 10000,
