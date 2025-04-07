@@ -80,6 +80,7 @@ export class FacebookEventDto {
   @IsIn(['top', 'bottom'])
   funnelStage: 'top' | 'bottom';
 
+  @IsString()
   @IsIn([
     'ad.view',
     'page.like',

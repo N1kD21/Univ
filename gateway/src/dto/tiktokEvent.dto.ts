@@ -66,6 +66,7 @@ export class TiktokEventDto {
   @IsIn(['top', 'bottom'])
   funnelStage: 'top' | 'bottom';
 
+  @IsString()
   @IsIn([
     'video.view',
     'like',
