@@ -78,3 +78,7 @@ To start all services, including the **gateway** with 3 replicas, use the follow
 
 ```bash
 docker-compose up --scale gateway=3 --build
+
+# .env file for quick variable replacement
+
+Just an example, of course, I’m not going to upload it to GitHub.
