@@ -13,7 +13,7 @@ import { Event } from './types/events';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Post()
+  @Post('/events')
   @UsePipes(new ValidationPipe({ transform: true }))
   async receiveEvent(@Body() events: EventDto) {
     console.log('📥 Received new events');
