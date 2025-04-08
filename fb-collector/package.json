@@ -27,6 +27,7 @@
     "@nestjs/terminus": "^11.0.0",
     "@prisma/client": "^6.5.0",
     "nats": "^2.29.3",
+    "nats.ws": "^1.30.3",
     "prisma": "^6.5.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
