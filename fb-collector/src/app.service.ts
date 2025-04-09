@@ -6,8 +6,8 @@ import {
   StreamInfo,
   JetStreamClient,
   AckPolicy,
-  StringCodec,
 } from 'nats';
+import { MessageQueueService } from './message-queue/message-queue.service';
 
 @Injectable()
 export class AppService implements OnModuleInit, OnModuleDestroy {
@@ -15,7 +15,8 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
   private jsm: JetStreamManager;
   private streams: StreamInfo[];
   private js: JetStreamClient;
-  private sc = StringCodec();
+
+  constructor(private readonly messageQueueService: MessageQueueService) {}
 
   async onModuleInit() {
     this.nc = await connect({
@@ -53,8 +54,9 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
     let m = await c.next();
 
     while (m) {
-      console.log(m.subject, '-----------------------');
+      await this.messageQueueService.addMessageToQueue(m.data.toString());
       m = await c.next();
+      if (m) m.ack();
     }
 
     console.log('# Stream info with one consumer');
