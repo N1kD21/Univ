@@ -1,0 +1,87 @@
+// ttk-collector/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  source    Platform
+  events    Event[]
+
+  // Одна из связей активна, в зависимости от source
+  facebook  FacebookProfile?
+  tiktok    TiktokProfile?
+}
+
+model FacebookProfile {
+  id       String @id @default(cuid())
+  userId   String @unique
+  name     String
+  age      Int
+  gender   Gender
+  country  String
+  city     String
+
+  user     User   @relation(fields: [userId], references: [userId])
+}
+
+model TiktokProfile {
+  id         String @id @default(cuid())
+  userId     String @unique
+  username   String
+  followers  Int
+
+  user       User   @relation(fields: [userId], references: [userId])
+}
+
+model Event {
+  id          String       @id @default(cuid())
+  eventId     String       @unique
+  timestamp   DateTime
+  funnelStage FunnelStage
+  eventType   EventType
+  userId      String
+  user        User         @relation(fields: [userId], references: [userId])
+  platform    Platform
+  data        Json
+}
+
+enum Gender {
+  male
+  female
+  non_binary
+}
+
+enum FunnelStage {
+  top
+  bottom
+}
+
+enum EventType {
+  ad_view
+  page_like
+  comment
+  video_view
+  ad_click
+  form_submission
+  checkout_complete
+  video_view_tiktok
+  like
+  share
+  profile_visit
+  purchase
+  follow
+}
+
+enum Platform {
+  facebook
+  tiktok
+}

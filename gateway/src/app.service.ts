@@ -5,6 +5,7 @@ import {
   JetStreamClient,
   JetStreamManager,
   StringCodec,
+  StorageType,
 } from 'nats';
 import { Event } from './types/events';
 
@@ -72,20 +73,28 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async createStream(streamName: string) {
-    await this.jsm.streams.add({
+    const configTtk = {
       name: 'tiktok',
       subjects: this.tiktokSubs,
       max_age: 60 * 60 * 1e9,
       max_bytes: 1000000000,
       max_msgs: 10000,
-    });
-    await this.jsm.streams.add({
+      storage: StorageType.File,
+      replicas: 3,
+    };
+    await this.jsm.streams.add(configTtk);
+
+    const configFb = {
       name: 'facebook',
       subjects: this.facebookSubs,
       max_age: 60 * 60 * 1e9,
       max_bytes: 1000000000,
       max_msgs: 10000,
-    });
+      storage: StorageType.File,
+      replicas: 3,
+    };
+    await this.jsm.streams.add(configFb);
+
     console.log(`Streams for ${streamName} created.`);
   }
 }

@@ -71,6 +71,22 @@ services:
     ports:
       - "4000:4000"
 
+
+    
+  ttk-collector:
+    build:
+      context: ./ttk-collector
+    env_file:
+      - .env 
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+    ports:
+      - "5000:5000"
+
   nginx:
     image: nginx:latest
     ports:
