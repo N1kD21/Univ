@@ -1,16 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { FacebookEvent, FunnelStage } from '../types/events';
-
-interface UserDb {
-  userId: string;
-  name: string;
-  age: number;
-  gender: 'male' | 'female' | 'non_binary';
-  country: string;
-  city: string;
-  source: 'facebook';
-}
+import { Gender } from '@prisma/client';
 
 interface EventDb {
   eventId: string;
@@ -34,17 +25,25 @@ export class DbService {
   constructor(private prisma: PrismaService) {}
 
   async trackUserEvent(event: FacebookEvent) {
-    const userData: UserDb = {
-      userId: event.data.user.userId,
-      name: event.data.user.name,
-      age: event.data.user.age,
-      gender:
-        event.data.user.gender === 'non-binary'
-          ? 'non_binary'
-          : event.data.user.gender,
-      country: event.data.user.location.country,
-      city: event.data.user.location.city,
-      source: 'facebook',
+    const userId = event.data.user.userId;
+    const gender = (
+      event.data.user.gender === 'non-binary'
+        ? 'non_binary'
+        : event.data.user.gender
+    ) as Gender;
+
+    const userData = {
+      userId,
+      source: 'facebook' as const,
+      facebook: {
+        create: {
+          name: event.data.user.name,
+          age: event.data.user.age,
+          gender,
+          country: event.data.user.location.country,
+          city: event.data.user.location.city,
+        },
+      },
     };
 
     const eventType = event.eventType.replace('.', '_') as EventDb['eventType'];
@@ -54,21 +53,30 @@ export class DbService {
       timestamp: new Date(event.timestamp),
       funnelStage: event.funnelStage,
       eventType,
-      userId: event.data.user.userId,
-      platform: event.source,
+      userId,
+      platform: 'facebook',
       data: event.data,
     };
 
     return await this.prisma.$transaction(async (tx) => {
       const existingUser = await tx.user.findUnique({
-        where: { userId: userData.userId },
+        where: { userId },
       });
 
       if (!existingUser) {
-        await tx.user.create({ data: userData });
+        try {
+          await tx.user.create({ data: userData });
+        } catch (error: any) {
+          console.error('Error creating user:', error);
+          return null;
+        }
       }
-
-      return await tx.event.create({ data: eventData });
+      try {
+        return await tx.event.create({ data: eventData });
+      } catch (error) {
+        console.error('Error creating event:', error);
+        return null;
+      }
     });
   }
 }
