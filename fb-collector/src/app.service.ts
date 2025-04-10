@@ -7,9 +7,8 @@ import {
   JetStreamClient,
   AckPolicy,
 } from 'nats';
-import { UserService } from './user/user.service';
 import { FacebookEvent } from './types/events';
-import { EventsService } from './events/events.service';
+import { DbService } from './db/db.service';
 
 @Injectable()
 export class AppService implements OnModuleInit, OnModuleDestroy {
@@ -18,10 +17,7 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
   private streams: StreamInfo[];
   private js: JetStreamClient;
 
-  constructor(
-    private readonly userService: UserService,
-    private readonly eventsService: EventsService,
-  ) {}
+  constructor(private readonly dbService: DbService) {}
 
   async onModuleInit() {
     this.nc = await connect({
@@ -64,10 +60,11 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
       if (!m) break;
       console.log('Message received');
       const userData = JSON.parse(m.data.toString()) as FacebookEvent;
-      await Promise.all([
-        this.eventsService.createEvent(userData),
-        this.userService.createUser(userData.data),
-      ]);
+      // await Promise.all([
+      //   this.userService.createUser(userData.data),
+      //   this.eventsService.createEvent(userData),
+      // ]);
+      await this.dbService.trackUserEvent(userData);
       m = await c.next();
       if (m) m.ack();
     }

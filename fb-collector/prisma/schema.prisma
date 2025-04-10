@@ -29,7 +29,7 @@ model Event {
   funnelStage FunnelStage
   eventType EventType
   userId    String
-  user      User         @relation(fields: [userId], references: [id])
+  user      User         @relation(fields: [userId], references: [userId])
   platform  Platform
   data      Json  
 }

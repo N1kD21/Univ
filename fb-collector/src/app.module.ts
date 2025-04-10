@@ -3,9 +3,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './prisma/prisma.service';
-import { EventsService } from './events/events.service';
-import { UserService } from './user/user.service';
 import { BullModule } from '@nestjs/bull';
+import { DbModule } from './db/db.module';
 
 @Module({
   imports: [
@@ -19,9 +18,10 @@ import { BullModule } from '@nestjs/bull';
         port: 6379,
       },
     }),
+    DbModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService, EventsService, UserService],
-  exports: [PrismaService, EventsService, UserService],
+  providers: [AppService, PrismaService],
+  exports: [PrismaService],
 })
 export class AppModule {}
