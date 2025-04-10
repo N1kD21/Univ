@@ -7,7 +7,9 @@ import {
   JetStreamClient,
   AckPolicy,
 } from 'nats';
-import { MessageQueueService } from './message-queue/message-queue.service';
+import { UserService } from './user/user.service';
+import { FacebookEvent } from './types/events';
+import { EventsService } from './events/events.service';
 
 @Injectable()
 export class AppService implements OnModuleInit, OnModuleDestroy {
@@ -16,7 +18,10 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
   private streams: StreamInfo[];
   private js: JetStreamClient;
 
-  constructor(private readonly messageQueueService: MessageQueueService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly eventsService: EventsService,
+  ) {}
 
   async onModuleInit() {
     this.nc = await connect({
@@ -53,14 +58,21 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
 
     let m = await c.next();
 
-    while (m) {
-      await this.messageQueueService.addMessageToQueue(m.data.toString());
+    setTimeout(() => {}, 20000);
+
+    while (true) {
+      if (!m) break;
+      console.log('Message received');
+      const userData = JSON.parse(m.data.toString()) as FacebookEvent;
+      await Promise.all([
+        this.eventsService.createEvent(userData),
+        this.userService.createUser(userData.data),
+      ]);
       m = await c.next();
       if (m) m.ack();
     }
-
-    console.log('# Stream info with one consumer');
-    console.log((await this.jsm.streams.info(stream.config.name)).state);
+    setTimeout(() => {}, 20000);
+    await this.subscribeToStreams(stream);
   }
 
   async onModuleDestroy() {
