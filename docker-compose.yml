@@ -5,9 +5,9 @@ services:
     image: tonistiigi/binfmt
     privileged: true
     command: --install all
-    restart: "no"  
+    restart: "no"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock 
+      - /var/run/docker.sock:/var/run/docker.sock
 
   nats:
     image: nats:latest
@@ -18,7 +18,8 @@ services:
     networks:
       - app-network
     volumes:
-      - nats_data:/data  # Persist NATS data
+      - nats_data:/data
+    restart: unless-stopped
 
   gateway:
     build:
@@ -31,8 +32,7 @@ services:
       - nats
     networks:
       - app-network
-    deploy:
-      replicas: 3
+    restart: unless-stopped
 
   reporter:
     build:
@@ -43,6 +43,7 @@ services:
       - app-network
     ports:
       - "6000:6000"
+    restart: unless-stopped
 
   publisher:
     image: andriiuni/events:latest
@@ -53,6 +54,7 @@ services:
       - gateway
     networks:
       - app-network
+    restart: unless-stopped
 
   postgres:
     image: postgres:13
@@ -66,12 +68,13 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - app-network
+    restart: unless-stopped
 
   fb-collector:
     build:
       context: ./fb-collector
     env_file:
-      - .env 
+      - .env
     environment:
       - DATABASE_URL=${DATABASE_URL}
     depends_on:
@@ -80,14 +83,13 @@ services:
       - app-network
     ports:
       - "4000:4000"
+    restart: unless-stopped
 
-
-    
   ttk-collector:
     build:
       context: ./ttk-collector
     env_file:
-      - .env 
+      - .env
     environment:
       - DATABASE_URL=${DATABASE_URL}
     depends_on:
@@ -96,6 +98,7 @@ services:
       - app-network
     ports:
       - "5000:5000"
+    restart: unless-stopped
 
   nginx:
     image: nginx:latest
@@ -107,6 +110,8 @@ services:
       - gateway
     networks:
       - app-network
+    restart: unless-stopped
+
   grafana:
     image: grafana/grafana:latest
     ports:
