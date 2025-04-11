@@ -37,12 +37,12 @@ services:
   reporter:
     build:
       context: ./reporter
-    ports:
-      - "6000"
     depends_on:
       - nats
     networks:
       - app-network
+    ports:
+      - "6000:6000"
 
   publisher:
     image: andriiuni/events:latest
@@ -107,6 +107,34 @@ services:
       - gateway
     networks:
       - app-network
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - app-network
+    depends_on:
+      - gateway
+      - fb-collector
+      - ttk-collector
+      - reporter
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus_data:/prometheus
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - app-network
+    restart: unless-stopped
 
 networks:
   app-network:
@@ -115,3 +143,5 @@ networks:
 volumes:
   postgres_data:
   nats_data:
+  grafana_data:
+  prometheus_data:
