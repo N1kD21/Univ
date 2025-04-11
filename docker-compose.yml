@@ -34,6 +34,16 @@ services:
     deploy:
       replicas: 3
 
+  reporter:
+    build:
+      context: ./reporter
+    ports:
+      - "6000"
+    depends_on:
+      - nats
+    networks:
+      - app-network
+
   publisher:
     image: andriiuni/events:latest
     platform: linux/arm64
